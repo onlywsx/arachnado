@@ -137,17 +137,29 @@ class Scheduler(object):
         self.queue.clear()
 
     def enqueue_request(self, request):
-        if not request.dont_filter and self.df.request_seen(request):
+        if self.df.request_seen(request):
             self.df.log(request, self.spider)
             return False
         if self.stats:
             self.stats.inc_value('scheduler/enqueued/composite', spider=self.spider)
+        request.meta["_df_check"] = True
         self.queue.push(request)
         return True
 
     def next_request(self):
         block_pop_timeout = self.idle_before_close
-        request = self.queue.pop(block_pop_timeout)
+        request = None
+        while True:
+            request = self.queue.pop(block_pop_timeout)
+            if not request:
+                break
+            if request.meta.get("_df_check", False):
+                break
+            if self.df.request_seen(request):
+                self.df.log(request, self.spider)
+            else:
+                break
+        #request = self.queue.pop(block_pop_timeout)
         if request and self.stats:
             self.stats.inc_value('scheduler/dequeued/composite', spider=self.spider)
         return request
