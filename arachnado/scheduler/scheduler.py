@@ -12,9 +12,9 @@ class Scheduler(object):
                  persist=False,
                  flush_on_start=False,
                  queue_key='%(spider)s:requests',
-                 queue_cls='scrapy_redis.queue.SpiderPriorityQueue',
-                 dupefilter_key='%(spider)s:dupefilter',
-                 dupefilter_cls='scrapy_redis.dupefilter.RFPDupeFilter',
+                 queue_cls='arachnado.scheduler.queue.SpiderPriorityQueue',
+                 dupefilter_key='%(spider)s:dupefilter2',
+                 dupefilter_cls='arachnado.scheduler.dupefilter.RFPDupeFilter',
                  idle_before_close=0,
                  serializer=None):
         """Initialize scheduler.
@@ -117,6 +117,7 @@ class Scheduler(object):
                 key=self.dupefilter_key % {'spider': spider.name},
                 debug=spider.settings.getbool('DUPEFILTER_DEBUG'),
             )
+            self.df.stats = self.stats
         except TypeError as e:
             raise ValueError("Failed to instantiate dupefilter class '%s': %s",
                              self.dupefilter_cls, e)

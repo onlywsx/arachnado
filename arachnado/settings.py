@@ -12,7 +12,7 @@ DISK_QUEUES_ROOT = './.scrapy/jobs'
 SCHEDULER = "arachnado.scheduler.scheduler.Scheduler"
 REDIS_SCHEDULER_QUEUE_CLASS = "arachnado.scheduler.queue.SpiderPriorityQueue"
 # SCHEDULER = "scrapy_redis.scheduler.Scheduler"
-DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+DUPEFILTER_CLASS = "arachnado.scheduler.dupefilter.RedisDupeFilter"
 # SCHEDULER = "arachnado.scheduler.Scheduler"
 # Turn it ON if the goal is to crawl the whole webiste
 # (vs crawling most recent content):
