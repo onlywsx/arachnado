@@ -3,6 +3,10 @@ import random as rnd
 from scrapy.utils.reqser import request_to_dict, request_from_dict
 from pymongo import MongoClient, ASCENDING
 from pymongo.errors import AutoReconnect
+from tornado import gen
+from arachnado.utils.twistedtornado import tt_coroutine
+from arachnado.utils.mongo import motor_from_uri, replace_dots
+
 from . import picklecompat
 
 
@@ -113,6 +117,7 @@ class SpiderPriorityQueue(Base):
         score = -request.priority
         self.server.execute_command('ZADD', self.key, score, data)
 
+    # @tt_coroutine
     def _mongo_push(self, request):
         queue_item = {
             "score": -request.priority,
@@ -135,14 +140,18 @@ class SpiderPriorityQueue(Base):
         else:
             return None
 
+    # @tt_coroutine
     def pop(self, timeout=0):
         """
         """
         reqs_in_redis = self._redis_len()
         if (reqs_in_redis < self.redis_size_limit * self.redis_size_trigger_mult):
             try:
-                for result in self.queue_col.find().sort([("score",ASCENDING), ("random_score",ASCENDING),]).limit(self.redis_size_limit - reqs_in_redis):
-                    # print(result)
+                # cursor = self.queue_col.find().sort([("score", ASCENDING), ("random_score", ASCENDING),]).limit(self.redis_size_limit - reqs_in_redis)
+                # while (yield cursor.fetch_next):
+                #     result = cursor.next_object()
+                #     print(result)
+                for result in self.queue_col.find().sort([("score", ASCENDING), ("random_score", ASCENDING),]).limit(self.redis_size_limit - reqs_in_redis):
                     self.queue_col.remove({"_id":result["_id"]})
                     request = self._decode_request(result["data"])
                     self._redis_push(request)
@@ -152,11 +161,12 @@ class SpiderPriorityQueue(Base):
                 self.stats.inc_value('scheduler/composite/mongo_pull_errors', spider=self.spider)
                 logger.error("Error while connecting to MONGO at {}".format(self.queue_uri))
         return self._redis_pop()
+        # raise gen.Return(self._redis_pop())
 
     def clear(self):
         """Clear queue/stack"""
         self.server.delete(self.key)
-        self.queue_col.remove({})
+        yield self.queue_col.remove({})
 
 
 __all__ = ['SpiderPriorityQueue', ]

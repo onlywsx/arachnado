@@ -41,7 +41,6 @@ class MongoCacheStorage(object):
             # TODO: remove site specific session id, etc.
             doc = self.col.find_one({'url': search_url})
         if doc is None:
-            # print("{} not found".format(search_url))
             return
         status = str(doc.get("status", -1))
         if status not in self.status_codes:
@@ -55,6 +54,7 @@ class MongoCacheStorage(object):
             respcls = responsetypes.from_args(headers=headers, url=url)
         response = respcls(url=url, headers=headers, status=status, body=body, request=request)
         response.meta["mongo_id"] = doc["_id"]
+        response.meta["crawled_at"] = doc.get("crawled_at", None)
         return response
 
     def store_response(self, spider, request, response):

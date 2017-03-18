@@ -5,7 +5,7 @@ from scrapy.dupefilters import BaseDupeFilter
 from scrapy.utils.request import request_fingerprint
 
 from . import defaults
-from .connection import get_redis_from_settings
+from arachnado.utils.redis import get_redis_from_settings
 
 
 logger = logging.getLogger(__name__)

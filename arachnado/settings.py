@@ -72,7 +72,8 @@ DOWNLOADER_MIDDLEWARES = {
 
 
 ITEM_PIPELINES = {
-    'arachnado.pipelines.mongoexport.MongoExportPipeline': 10,
+    # 'arachnado.pipelines.mongoexport.MongoExportPipeline': 10,
+    'arachnado.pipelines.nodupsexport.NoDupsExportPipeline': 10,
     'arachnado.pipelines.esexport.ElasticSearchExportPipeline': 20,
 }
 
@@ -86,6 +87,5 @@ MONGO_EXPORT_JOBID_KEY = '_job_id'
 HTTPCACHE_ENABLED = True
 HTTPCACHE_CLEANUP_PARAMS = {}
 HTTPCACHE_STORAGE = 'arachnado.pagecache.composite.CompositeCacheStorage'
-# HTTPCACHE_STORAGE = 'arachnado.pagecache.mongo.MongoCacheStorage'
-
-
+HTTPCACHE_POLICY = 'arachnado.pagecache.policy.CrawledDatePolicy'
+HTTPCACHE_MAX_DAYS_AGE = 15

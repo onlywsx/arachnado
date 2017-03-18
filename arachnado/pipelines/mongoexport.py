@@ -8,6 +8,7 @@ from __future__ import absolute_import
 import logging
 import datetime
 import copy
+from w3lib.url import canonicalize_url
 
 from tornado import gen
 from tornado.ioloop import PeriodicCallback
@@ -189,7 +190,6 @@ class MongoExportPipeline(object):
         mongo_item = scrapy_item_to_dict(item)
         if self.job_id_key:
             mongo_item[self.job_id_key] = self.job_id
-        #TODO: check via redis if we stored this already
         try:
             yield self.items_col.insert(mongo_item)
             self.crawler.stats.inc_value("mongo_export/items_stored_count")

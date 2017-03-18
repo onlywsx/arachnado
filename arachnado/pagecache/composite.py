@@ -73,6 +73,7 @@ class CompositeCacheStorage(object):
             body = es_data["_source"][self.es_page_body].encode('utf8', errors='ignore')
         response = respcls(url=url, headers=headers, status=status, body=body, request=request)
         response.meta["mongo_id"] = doc["_id"]
+        response.meta["crawled_at"] = doc.get("crawled_at", None)
         logger.info("{}, body len {}".format(url, len(body)))
         return response
 
