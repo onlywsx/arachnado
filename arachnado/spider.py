@@ -277,7 +277,8 @@ class WideOnionCrawlSpider(CrawlWebsiteSpider):
             self._inc_stats_value('responses/TimeoutError')
 
     def parse(self, response):
-        is_splash_resp = isinstance(response, SplashResponse) or isinstance(response, SplashTextResponse)
+        is_splash_resp = isinstance(response, SplashResponse) or isinstance(response, SplashTextResponse) \
+                         or isinstance(response, SplashJsonResponse)
 
         if not isinstance(response, HtmlResponse) and not is_splash_resp and not response.meta.get("unusable", False):
             response.meta["unusable"] = True
@@ -313,18 +314,19 @@ class WideOnionCrawlSpider(CrawlWebsiteSpider):
                 yield req
 
         if is_splash_resp:
-            splash_res = extract_splash_response(response)
-            if splash_res:
-                picfilename = "{}.png".format(str(uuid.uuid4()))
-                if self.fs_export_path:
-                    store_img(picfilename, self.fs_export_path, splash_res["png"])
-                if self.s3_export_path:
-                    s3_store_img(picfilename, self.s3_export_path,
-                                 splash_res["png"],
-                                 self.s3_key, self.s3_secret_key)
-                if self.s3_export_path or self.fs_export_path:
-                    response.meta["pagepicurl"] = picfilename
-                    self._inc_stats_value('screenshots/taken')
+            if isinstance(response, SplashJsonResponse):
+                splash_res = extract_splash_response(response)
+                if splash_res:
+                    picfilename = "{}.png".format(str(uuid.uuid4()))
+                    if self.fs_export_path:
+                        store_img(picfilename, self.fs_export_path, splash_res["png"])
+                    if self.s3_export_path:
+                        s3_store_img(picfilename, self.s3_export_path,
+                                     splash_res["png"],
+                                     self.s3_key, self.s3_secret_key)
+                    if self.s3_export_path or self.fs_export_path:
+                        response.meta["pagepicurl"] = picfilename
+                        self._inc_stats_value('screenshots/taken')
 
     @property
     def link_extractor(self):

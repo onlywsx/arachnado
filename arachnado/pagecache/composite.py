@@ -2,9 +2,11 @@ import logging
 import pymongo
 import elasticsearch as es
 from six.moves.urllib.parse import urlparse, urlunparse, ParseResult
+from w3lib.url import canonicalize_url
 
 from scrapy.http import Headers
 from scrapy.responsetypes import responsetypes
+from scrapy_splash.responsetypes import responsetypes as splash_responsetypes
 from scrapy_splash import SplashResponse
 
 
@@ -25,6 +27,7 @@ class CompositeCacheStorage(object):
             self.es_client = es.Elasticsearch([self.es_url,])
         else:
             self.es_client = None
+            logger.debug("no ElasticSearch for page caching")
         usable_codes_key = "USABLE_CACHED_RESPONSE_CODES"
         if usable_codes_key in settings:
             self.status_codes = settings[usable_codes_key]
@@ -42,17 +45,14 @@ class CompositeCacheStorage(object):
 
     def retrieve_response(self, spider, request):
         if 'splash' in request.meta:
-            doc_url = request.meta.get("url", None)
+            search_url = request.meta.get("url", None)
         else:
-            doc_url = request.url
-        if not doc_url:
+            search_url = request.url
+        if not search_url:
             return
-        doc = self.col.find_one({'url': doc_url})
+        doc = self.col.find_one({'url': search_url})
         if doc is None:
-            url_obj = urlparse(doc_url)
-            url_obj2 = ParseResult(url_obj.scheme, url_obj.netloc, url_obj.path, url_obj.params, url_obj.query, '')
-            search_url = urlunparse(url_obj2)
-            # TODO: remove site specific session id, etc.
+            search_url = canonicalize_url(search_url)
             doc = self.col.find_one({'url': search_url})
         if doc is None:
             logger.debug("{} not found".format(search_url))
@@ -64,9 +64,11 @@ class CompositeCacheStorage(object):
         headers = Headers(doc['headers'])
         body = doc['body'].encode('utf-8')
         if 'splash' in request.meta:
-            respcls = SplashResponse
+            # respcls = SplashResponse
+            respcls = splash_responsetypes.from_args(headers=headers, url=url)
         else:
             respcls = responsetypes.from_args(headers=headers, url=url)
+        logger.debug("{}, body len {}".format(url, len(body)))
         if "es_id" in doc and not len(body) and self.es_client:
             logger.debug("elasticsearch as datasource")
             es_data = self.es_client.get(index=self.index_name, doc_type=self.type_name, id=doc["es_id"])
@@ -74,7 +76,7 @@ class CompositeCacheStorage(object):
         response = respcls(url=url, headers=headers, status=status, body=body, request=request)
         response.meta["mongo_id"] = doc["_id"]
         response.meta["crawled_at"] = doc.get("crawled_at", None)
-        logger.info("{}, body len {}".format(url, len(body)))
+        logger.debug("{}, body len {}".format(url, len(body)))
         return response
 
     def store_response(self, spider, request, response):

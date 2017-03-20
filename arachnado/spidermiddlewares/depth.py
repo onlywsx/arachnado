@@ -21,10 +21,10 @@ class DepthMiddleware(object):
     @classmethod
     def from_crawler(cls, crawler):
         settings = crawler.settings
-        maxdepth = settings.getint('DEPTH_LIMIT')
-        verbose = settings.getbool('DEPTH_STATS_VERBOSE')
+        maxdepth = settings.getint('DEPTH_LIMIT', -1)
+        verbose = settings.getbool('DEPTH_STATS_VERBOSE', False)
         prio = settings.getint('DEPTH_PRIORITY')
-        domainsdepth = settings.get('DEPTH_DOMAINS_LIMITS')
+        domainsdepth = settings.get('DEPTH_DOMAINS_LIMITS', {})
         return cls(maxdepth, crawler.stats, verbose, prio, domainsdepth)
 
     def process_spider_output(self, response, result, spider):
@@ -44,7 +44,7 @@ class DepthMiddleware(object):
                     logger.debug("Using specific depth for {}".format(url_domain))
                 if self.prio:
                     request.priority -= depth * self.prio
-                if self.maxdepth and depth > depthlimit:
+                if self.maxdepth > -1 and depth > depthlimit:
                     logger.debug(
                         "Ignoring link (depth > %(maxdepth)d): %(requrl)s ",
                         {'maxdepth': self.maxdepth, 'requrl': request.url},
