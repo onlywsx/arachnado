@@ -343,7 +343,7 @@ class WideOnionCrawlSpider(CrawlWebsiteSpider):
 class RedisWideOnionCrawlSpider(RedisMixin, WideOnionCrawlSpider):
     """
     """
-    name = 'onionqueue'
+    name = 'widequeue'
 
     @classmethod
     def from_crawler(self, crawler, *args, **kwargs):
@@ -351,6 +351,30 @@ class RedisWideOnionCrawlSpider(RedisMixin, WideOnionCrawlSpider):
         obj.setup_redis(crawler)
         obj.stats = crawler.stats
         return obj
+
+    def start_requests(self):
+        self.logger.info("Started job %s (mongo id=%s)", self.crawl_id, self.motor_job_id)
+        req_urls = []
+        if self.start_urls:
+            req_urls = [x for x in self.start_urls if x != "wide"]
+        if self.file_feed:
+            with open(self.file_feed, "r") as urls_file:
+                for url in urls_file:
+                    req_urls.append(url)
+        for url in req_urls:
+            for req in self.create_request(url, self.parse):
+                yield req
+        scheduler = Scheduler.from_settings(self.settings)
+        scheduler.open(self)
+        scheduler.stats = self.stats
+        first_req = None
+        for req in self.next_requests():
+            if not first_req:
+                first_req = req
+            else:
+                scheduler.enqueue_request(req)
+        if first_req:
+            yield first_req
 
     def next_requests(self):
         use_set = self.settings.getbool('REDIS_START_URLS_AS_SET')
@@ -384,6 +408,17 @@ class RedisCheatOnionCrawlSpider(RedisWideOnionCrawlSpider):
     name = 'onioncheat'
 
     def start_requests(self):
+        self.logger.info("Started job %s (mongo id=%s)", self.crawl_id, self.motor_job_id)
+        req_urls = []
+        if self.start_urls:
+            req_urls.extend(self.start_urls)
+        if self.file_feed:
+            with open(self.file_feed, "r") as urls_file:
+                for url in urls_file:
+                    req_urls.append(url)
+        for url in req_urls:
+            for req in self.create_request(url, self.parse):
+                yield req
         scheduler = Scheduler.from_settings(self.settings)
         scheduler.open(self)
         scheduler.stats = self.stats
