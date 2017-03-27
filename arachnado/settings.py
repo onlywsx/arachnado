@@ -66,6 +66,7 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashCookiesMiddleware': 723,
     'scrapy_splash.SplashMiddleware': 725,
     'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware': 720,
+    'scrapy.downloadermiddlewares.downloadtimeout.DownloadTimeoutMiddleware': 730,
 }
 
 # HTTPCACHE_STORAGE = 'arachnado.pagecache.mongo.MongoCacheStorage'
