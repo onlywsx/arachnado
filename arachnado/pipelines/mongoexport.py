@@ -29,7 +29,11 @@ def scrapy_item_to_dict(son):
     """Recursively convert scrapy.Item to dict"""
     for key, value in list(son.items()):
         if isinstance(value, (scrapy.Item, dict)):
-            son[key] = scrapy_item_to_dict(
+            if isinstance(key, (bytes, bytearray)):
+                skey = key.decode("utf8", errors="ignore")
+            else:
+                skey = key
+            son[skey] = scrapy_item_to_dict(
                 son.pop(key)
             )
         elif isinstance(value, list):
