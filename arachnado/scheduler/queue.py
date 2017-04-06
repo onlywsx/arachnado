@@ -119,16 +119,25 @@ class SpiderPriorityQueue(Base):
 
     # @tt_coroutine
     def _mongo_push(self, request):
+        # spider_name = self.get_spider_name()
         queue_item = {
             "score": -request.priority,
             "data": self._encode_request(request),
-            "random_score": rnd.random()
+            "random_score": rnd.random(),
+            "spider": self.get_spider_name()
         }
         try:
             self.queue_col.insert(queue_item)
         except AutoReconnect:
             self.stats.inc_value('scheduler/composite/mongo_push_errors', spider=self.spider)
             logger.error("Error while connecting to MONGO at {}".format(self.queue_uri))
+
+    def get_spider_name(self):
+        if self.spider:
+            spider_name = self.spider.name
+        else:
+            spider_name = "unknown"
+        return spider_name
 
     def _redis_pop(self, pos=0):
         pipe = self.server.pipeline()
@@ -151,7 +160,7 @@ class SpiderPriorityQueue(Base):
                 # while (yield cursor.fetch_next):
                 #     result = cursor.next_object()
                 #     print(result)
-                for result in self.queue_col.find().sort([("score", ASCENDING), ("random_score", ASCENDING),]).limit(self.redis_size_limit - reqs_in_redis):
+                for result in self.queue_col.find({"spider": self.get_spider_name()}).sort([("score", ASCENDING), ("random_score", ASCENDING),]).limit(self.redis_size_limit - reqs_in_redis):
                     self.queue_col.remove({"_id":result["_id"]})
                     request = self._decode_request(result["data"])
                     self._redis_push(request)

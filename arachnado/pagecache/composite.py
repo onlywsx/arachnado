@@ -1,6 +1,5 @@
 import logging
 import pymongo
-import elasticsearch as es
 from six.moves.urllib.parse import urlparse, urlunparse, ParseResult
 from w3lib.url import canonicalize_url
 
@@ -17,17 +16,19 @@ class CompositeCacheStorage(object):
     """ """
 
     def __init__(self, settings):
+        self.temp_collection_used = 0
+        self.perm_collection_used = 0
         self.db_name = settings.get('MOTOR_PIPELINE_DB_NAME', 'arachnado')
         self.db_uri = settings.get('MOTOR_PIPELINE_URI')
-        self.index_name = settings.get('ES_INDEX_NAME')
-        self.type_name = settings.get('ES_TYPE_NAME')
-        self.es_url = settings.get('ES_URL', None)
-        self.es_page_body = settings.get('ES_PAGE_BODY_KEY', "pagetext")
-        if self.es_url:
-            self.es_client = es.Elasticsearch([self.es_url,])
-        else:
-            self.es_client = None
-            logger.debug("no ElasticSearch for page caching")
+        # self.index_name = settings.get('ES_INDEX_NAME')
+        # self.type_name = settings.get('ES_TYPE_NAME')
+        # self.es_url = settings.get('ES_URL', None)
+        # self.es_page_body = settings.get('ES_PAGE_BODY_KEY', "pagetext")
+        # if self.es_url:
+        #     self.es_client = es.Elasticsearch([self.es_url,])
+        # else:
+        #     self.es_client = None
+        #     logger.debug("no ElasticSearch for page caching")
         usable_codes_key = "USABLE_CACHED_RESPONSE_CODES"
         if usable_codes_key in settings:
             self.status_codes = settings[usable_codes_key]
@@ -39,6 +40,8 @@ class CompositeCacheStorage(object):
         self.db = pymongo.MongoClient(self.db_uri)
         self.col = self.db[self.db_name]['items']
         self.col.ensure_index('url')
+        self.pages_col = self.db[self.db_name]['pages']
+        self.page_texts_col = self.db[self.db_name]['page_texts']
 
     def close_spider(self, spider):
         self.db.close()
@@ -50,10 +53,26 @@ class CompositeCacheStorage(object):
             search_url = request.url
         if not search_url:
             return
-        doc = self.col.find_one({'url': search_url})
+        search_url2 = canonicalize_url(search_url)
+        url_query = {"$or": [{"url":search_url}, {"url":search_url2}]}
+        # permanent collection search
+        doc = self.pages_col.find_one(url_query)
+        if doc:
+            # logger.warning(doc["body_id"])
+            page_body = self.page_texts_col.find_one({"_id":doc["body_id"]})
+            if page_body:
+                doc["body"] = page_body["body"]
+                logger.debug("{} found at pages collection".format(search_url))
+                self.perm_collection_used += 1
+                # logger.warning("{} found at pages collection".format(search_url))
+            else:
+                doc = None
         if doc is None:
-            search_url = canonicalize_url(search_url)
-            doc = self.col.find_one({'url': search_url})
+            # temp collection search
+            doc = self.col.find_one(url_query)
+            logger.debug("{} found at temp collection".format(search_url))
+            self.temp_collection_used += 1
+            # logger.error("{} found at temp collection".format(search_url))
         if doc is None:
             logger.debug("{} not found".format(search_url))
             return

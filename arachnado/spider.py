@@ -417,6 +417,14 @@ class RedisWideOnionCrawlSpider3(RedisWideOnionCrawlSpider):
         """
         name = 'widequeue3'
 
+
+class RedisWideOnionCrawlSpider4(RedisWideOnionCrawlSpider):
+    """
+    for testing
+    """
+    name = 'widequeue4'
+
+
 # class RedisCheatOnionCrawlSpider(RedisWideOnionCrawlSpider):
 #     name = 'onioncheat'
 #

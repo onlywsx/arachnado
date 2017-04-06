@@ -10,6 +10,8 @@ from scrapy.exceptions import NotConfigured, IgnoreRequest
 from scrapy.utils.misc import load_object
 from scrapy.xlib.tx import ResponseFailed
 
+from arachnado.pagecache.composite import CompositeCacheStorage
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +56,14 @@ class HttpCacheMiddleware(object):
             return
         # Look for cached response and check if expired
         cachedresponse = self.storage.retrieve_response(spider, request)
+        if self.stats:
+            if isinstance(self.storage, CompositeCacheStorage):
+                self.stats.set_value('httpcache/temp_storage_hits',
+                                     self.storage.temp_collection_used,
+                                     spider=spider)
+                self.stats.set_value('httpcache/perm_storage_hits',
+                                     self.storage.perm_collection_used,
+                                     spider=spider)
         if cachedresponse is None:
             self.stats.inc_value('httpcache/miss', spider=spider)
             if self.ignore_missing:
