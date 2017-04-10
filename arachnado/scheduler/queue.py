@@ -97,9 +97,11 @@ class SpiderPriorityQueue(Base):
                 # check priority
                 if redis_last_request.priority > request.priority:
                     self._redis_push(redis_last_request)
-                    self._mongo_push(request)
+                    if not self._mongo_push(request):
+                        self._redis_push(request)
                 else:
-                    self._mongo_push(redis_last_request)
+                    if not self._mongo_push(redis_last_request):
+                        self._redis_push(redis_last_request)
                     self._redis_push(request)
                 if self.stats:
                     self.stats.inc_value('scheduler/composite/to_mongo', spider=self.spider)
@@ -128,9 +130,12 @@ class SpiderPriorityQueue(Base):
         }
         try:
             self.queue_col.insert(queue_item)
-        except AutoReconnect:
+            return True
+#        except AutoReconnect:
+        except Exception as ex:
             self.stats.inc_value('scheduler/composite/mongo_push_errors', spider=self.spider)
-            logger.error("Error while connecting to MONGO at {}".format(self.queue_uri))
+            logger.exception("Error while connecting to MONGO at {}".format(self.queue_uri))
+        return False
 
     def get_spider_name(self):
         if self.spider:

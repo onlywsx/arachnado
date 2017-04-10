@@ -70,7 +70,7 @@ class CompositeCacheStorage(object):
                 else:
                     doc = None
         except Exception as ex:
-            logger.error(ex)
+            logger.exception("perm cache error")
             doc = None
             self.perm_collection_errors += 1
         if doc is None:
@@ -80,7 +80,7 @@ class CompositeCacheStorage(object):
                 logger.debug("{} found at temp collection".format(search_url))
                 self.temp_collection_used += 1
             except Exception as ex:
-                logger.error(ex)
+                logger.exception("temp cache error")
                 self.temp_collection_errors += 1
         if doc is None:
             logger.debug("{} not found".format(search_url))
