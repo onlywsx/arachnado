@@ -58,12 +58,19 @@ class HttpCacheMiddleware(object):
         cachedresponse = self.storage.retrieve_response(spider, request)
         if self.stats:
             if isinstance(self.storage, CompositeCacheStorage):
-                self.stats.set_value('httpcache/temp_storage_hits',
+                self.stats.set_value('httpcache/temp/hits',
                                      self.storage.temp_collection_used,
                                      spider=spider)
-                self.stats.set_value('httpcache/perm_storage_hits',
+                self.stats.set_value('httpcache/perm/hits',
                                      self.storage.perm_collection_used,
                                      spider=spider)
+                self.stats.set_value('httpcache/temp/errors',
+                                     self.storage.temp_collection_errors,
+                                     spider=spider)
+                self.stats.set_value('httpcache/perm/errors',
+                                     self.storage.perm_collection_errors,
+                                     spider=spider)
+
         if cachedresponse is None:
             self.stats.inc_value('httpcache/miss', spider=spider)
             if self.ignore_missing:

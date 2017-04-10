@@ -18,6 +18,8 @@ class CompositeCacheStorage(object):
     def __init__(self, settings):
         self.temp_collection_used = 0
         self.perm_collection_used = 0
+        self.temp_collection_errors = 0
+        self.perm_collection_errors = 0
         self.db_name = settings.get('MOTOR_PIPELINE_DB_NAME', 'arachnado')
         self.db_uri = settings.get('MOTOR_PIPELINE_URI')
         # self.index_name = settings.get('ES_INDEX_NAME')
@@ -56,23 +58,30 @@ class CompositeCacheStorage(object):
         search_url2 = canonicalize_url(search_url)
         url_query = {"$or": [{"url":search_url}, {"url":search_url2}]}
         # permanent collection search
-        doc = self.pages_col.find_one(url_query)
-        if doc:
-            # logger.warning(doc["body_id"])
-            page_body = self.page_texts_col.find_one({"_id":doc["body_id"]})
-            if page_body:
-                doc["body"] = page_body["body"]
-                logger.debug("{} found at pages collection".format(search_url))
-                self.perm_collection_used += 1
-                # logger.warning("{} found at pages collection".format(search_url))
-            else:
-                doc = None
+        try:
+            doc = self.pages_col.find_one(url_query)
+            if doc:
+                # logger.warning(doc["body_id"])
+                page_body = self.page_texts_col.find_one({"_id":doc["body_id"]})
+                if page_body:
+                    doc["body"] = page_body["body"]
+                    logger.debug("{} found at pages collection".format(search_url))
+                    self.perm_collection_used += 1
+                else:
+                    doc = None
+        except Exception as ex:
+            logger.error(ex)
+            doc = None
+            self.perm_collection_errors += 1
         if doc is None:
             # temp collection search
-            doc = self.col.find_one(url_query)
-            logger.debug("{} found at temp collection".format(search_url))
-            self.temp_collection_used += 1
-            # logger.error("{} found at temp collection".format(search_url))
+            try:
+                doc = self.col.find_one(url_query)
+                logger.debug("{} found at temp collection".format(search_url))
+                self.temp_collection_used += 1
+            except Exception as ex:
+                logger.error(ex)
+                self.temp_collection_errors += 1
         if doc is None:
             logger.debug("{} not found".format(search_url))
             return
