@@ -41,7 +41,7 @@ class CompositeCacheStorage(object):
     def open_spider(self, spider):
         self.db = pymongo.MongoClient(self.db_uri)
         self.col = self.db[self.db_name]['items']
-        self.col.ensure_index('url')
+        # self.col.ensure_index('url')
         self.pages_col = self.db[self.db_name]['pages']
         self.page_texts_col = self.db[self.db_name]['page_texts']
 
