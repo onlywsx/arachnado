@@ -25,12 +25,14 @@ class PageItemsMiddleware(object):
         return [page_item] + requests
 
     def get_page_item(self, response, items, type_='page'):
+        if not items:
+            return None
         return {
             'crawled_at': datetime.datetime.utcnow(),
             'url': response.url,
-            'status': response.status,
-            'headers': response.headers.to_unicode_dict(),
-            'body': response.body_as_unicode(),
+            # 'status': response.status,
+            # 'headers': response.headers.to_unicode_dict(),
+            # 'body': response.body_as_unicode(),
             'items': items,
             '_type': type_,
         }

@@ -4,6 +4,7 @@ import contextlib
 import logging
 
 import scrapy
+from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy.http.response.html import HtmlResponse
 from autologin_middleware import link_looks_like_logout
@@ -11,7 +12,7 @@ from autologin_middleware import link_looks_like_logout
 from arachnado.utils.misc import add_scheme_if_missing, get_netloc
 
 
-class ArachnadoSpider(scrapy.Spider):
+class ArachnadoSpider(CrawlSpider):
     """
     A base spider that contains common attributes and utilities for all
     Arachnado spiders
@@ -31,7 +32,7 @@ class ArachnadoSpider(scrapy.Spider):
         Ensure that spider is inherited from ArachnadoSpider
         to receive its features. HackHackHack.
 
-        >>> class Foo(scrapy.Spider):
+        >>> class Foo(CrawlSpider):
         ...     name = 'foo'
         >>> issubclass(Foo, ArachnadoSpider)
         False
@@ -143,3 +144,47 @@ def _dont_increase_depth(response):
         yield
     finally:
         response.meta['depth'] += 1
+
+
+class FishfirstSpider(ArachnadoSpider):
+    name = 'fishfirst'
+    # start_urls = ['http://www.fishfirst.cn/portal.php?mod=list&catid=15']
+
+    # rules = (
+    #     Rule(LinkExtractor(allow=r'article-\d+-1\.html'), callback='parse_item', follow=True),
+    # )
+
+    def __init__(self, startUrls=None, rules=None, parses=None, *args, **kwargs):
+        ''''''
+        self.start_urls = startUrls
+
+        _rules = []
+        for (allow, parse) in rules:
+            _rules.append(Rule(LinkExtractor(allow=allow), callback='parse_item', \
+                               cb_kwargs={'ident': parse}, follow=True))
+        self.rules = tuple(_rules)
+
+        super(FishfirstSpider, self).__init__(*args, **kwargs)
+
+        allow_domain = get_netloc(self.domain)
+        if allow_domain.startswith("www."):
+            allow_domain = allow_domain[len("www."):]
+        self.allowed_domains = [allow_domain]
+        self.parses = parses
+
+    def parse_item(self, response, ident=None):
+        item = {}
+        ident = ident+'_' if ident else ''
+        for (field, match) in self.parses:
+            if field.startswith(ident):
+                field = field[len(ident):]
+                if match.find('//') > -1 or match.find('()') > -1 or match.find('@') > -1:
+                    item[field] = response.xpath(match).extract_first()
+                else:
+                    item[field] = response.css(match).extract_first()
+
+        # item['title'] = response.css('h1.ph::text').extract_first()
+        # item['date'] = response.css('p.xg1::text').extract_first()
+        # item['digest'] = response.css('#ct>div.mn>div.bm.vw>div.s>div::text').extract_first()[2:]
+        # item['content'] = response.css('#article_content').extract_first()
+        return item

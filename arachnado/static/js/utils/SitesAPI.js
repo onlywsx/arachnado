@@ -28,3 +28,17 @@ export function keyValueListToDict(list) {
     }
     return dict;
 }
+
+export function valueListToList(list) {
+    var arr = [];
+    if(list) {
+        list.forEach(function(row) {
+            if (row.key) {
+                arr.push([row.key, row.value]);
+            } else {
+                arr.push(row.value);
+            }
+        });
+    }
+    return arr;
+}

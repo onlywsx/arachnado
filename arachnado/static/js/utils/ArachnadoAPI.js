@@ -23,3 +23,17 @@ export function pauseCrawl(jobId){
 export function resumeCrawl(jobId){
     return jsonAjax(window.RESUME_CRAWL_URL, {job_id: jobId});
 }
+
+export function saveCrawl(spiderId, domain, options){
+    var saveCrawlUrl = window.SAVE_CRAWL_URL;
+    var data = {
+        _id: spiderId,
+        domain: domain,
+        options: options
+    };
+    return jsonAjax(saveCrawlUrl, data);
+}
+
+export function removeCrawl(spiderId){
+    return jsonAjax(window.REMOVE_CRAWL_URL, {_id: spiderId});
+}

@@ -6,6 +6,7 @@ var { Router, Route, IndexRoute, hashHistory } = require('react-router');
 
 var { IndexPage } = require("./pages/IndexPage.jsx");
 var { JobPage } = require("./pages/JobPage.jsx");
+var { SpiderPage } = require("./pages/SpiderPage.jsx");
 var { SitesPage, SitePage } = require("./pages/SitesPage.jsx");
 
 var NotFound = React.createClass({
@@ -32,6 +33,7 @@ ReactDOM.render((
         <Route path="/" component={App}>
             <IndexRoute component={IndexPage} />
             <Route path="job/:id" component={JobPage} />
+            <Route path="spider/:id" component={SpiderPage} />
             <Route path="sites" component={SitesPage} />
             <Route path="*" component={NotFound} />
         </Route>
