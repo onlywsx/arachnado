@@ -31,8 +31,13 @@ export var store = Reflux.createStore({
     },
 
     onSetOne: function (spider) {
-        this.spiders.push(spider)
-        this.trigger(this.spiders);
+        var spiderIndex = this.spiders.findIndex((spider_) => {
+            return spider_._id == spider._id;
+        });
+        if(spiderIndex == -1) {
+            this.spiders.push(spider)
+            this.trigger(this.spiders);
+        }
     },
 
     onStartCrawl: function (domain, options) {

@@ -733,8 +733,13 @@ webpackJsonp([1],{
 	    },
 
 	    onSetOne: function onSetOne(spider) {
-	        this.spiders.push(spider);
-	        this.trigger(this.spiders);
+	        var spiderIndex = this.spiders.findIndex(function (spider_) {
+	            return spider_._id == spider._id;
+	        });
+	        if (spiderIndex == -1) {
+	            this.spiders.push(spider);
+	            this.trigger(this.spiders);
+	        }
 	    },
 
 	    onStartCrawl: function onStartCrawl(domain, options) {

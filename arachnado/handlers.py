@@ -93,12 +93,7 @@ class Index(NoEtagsMixin, BaseRequestHandler):
 
     def get(self):
         jobs = self.crawler_process.jobs
-        spiders = []
-        @gen.coroutine
-        def _resume():
-            for spider in (yield self.spider_storage.fetch()):
-                spiders.append(spider)
-        IOLoop.instance().add_callback(_resume)
+        spiders = self.domain_crawlers.get_spider(self.spider_storage)
 
         initial_data_json = json_encode({"jobs": jobs, "spiders": spiders})
         return self.render("index.html", initial_data_json=initial_data_json)
