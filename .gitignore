@@ -5,11 +5,9 @@
 .idea
 *.pyc
 node_modules/
-arachnado/static/build/
 npm-debug.log
 *.ipynb*
 arachnado.egg-info/
-build/
 dist/
 .tox/
 .cache
