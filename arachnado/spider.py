@@ -148,43 +148,47 @@ def _dont_increase_depth(response):
 
 class FishfirstSpider(ArachnadoSpider):
     name = 'fishfirst'
-    # start_urls = ['http://www.fishfirst.cn/portal.php?mod=list&catid=15']
-
-    # rules = (
-    #     Rule(LinkExtractor(allow=r'article-\d+-1\.html'), callback='parse_item', follow=True),
-    # )
 
     def __init__(self, startUrls=None, rules=None, parses=None, *args, **kwargs):
         ''''''
         self.start_urls = startUrls
-
-        _rules = []
-        for (allow, parse) in rules:
-            _rules.append(Rule(LinkExtractor(allow=allow), callback='parse_item', \
-                               cb_kwargs={'ident': parse}, follow=True))
-        self.rules = tuple(_rules)
+        self.rules = self._parse_rules(rules)
 
         super(FishfirstSpider, self).__init__(*args, **kwargs)
 
-        allow_domain = get_netloc(self.domain)
+        self._set_allowed_domain(self.domain)
+
+        self.parses = parses
+
+    def _parse_rules(self, rules):
+        _rules = []
+        for (allow, parse) in rules:
+            if parse == '-':
+                _rules.append(Rule(LinkExtractor(allow=allow), follow=True))
+            else:
+                _rules.append(Rule(LinkExtractor(allow=allow), callback='parse_item', \
+                                cb_kwargs={'ident': parse}, follow=True))
+        return tuple(_rules)
+
+    def _set_allowed_domain(self, domain):
+        allow_domain = get_netloc(domain)
         if allow_domain.startswith("www."):
             allow_domain = allow_domain[len("www."):]
         self.allowed_domains = [allow_domain]
-        self.parses = parses
 
     def parse_item(self, response, ident=None):
         item = {}
         ident = ident+'_' if ident else ''
         for (field, match) in self.parses:
-            if field.startswith(ident):
+            if ident == '':
+                item[field] = self._match_item(response, match)
+            elif field.startswith(ident):
                 field = field[len(ident):]
-                if match.find('//') > -1 or match.find('()') > -1 or match.find('@') > -1:
-                    item[field] = response.xpath(match).extract_first()
-                else:
-                    item[field] = response.css(match).extract_first()
+                item[field] = self._match_item(response, match)
 
-        # item['title'] = response.css('h1.ph::text').extract_first()
-        # item['date'] = response.css('p.xg1::text').extract_first()
-        # item['digest'] = response.css('#ct>div.mn>div.bm.vw>div.s>div::text').extract_first()[2:]
-        # item['content'] = response.css('#article_content').extract_first()
         return item
+
+    def _match_item(self, response, match):
+        if match.find('//') > -1 or match.find('()') > -1 or match.find('@') > -1:
+            return response.xpath(match).extract_first()
+        return response.css(match).extract_first()
