@@ -8,6 +8,7 @@ from tornado.ioloop import IOLoop
 import datetime
 from os import getenv
 import uuid
+import json
 
 from arachnado.utils.misc import json_encode
 from arachnado.monitor import Monitor
@@ -95,7 +96,7 @@ class Index(NoEtagsMixin, BaseRequestHandler):
         jobs = self.crawler_process.jobs
         spiders = self.domain_crawlers.get_spider(self.spider_storage)
 
-        initial_data_json = json_encode({"jobs": jobs, "spiders": spiders})
+        initial_data_json = json.dumps(json_encode({"jobs": jobs, "spiders": spiders}))
         return self.render("index.html", initial_data_json=initial_data_json)
 
 
