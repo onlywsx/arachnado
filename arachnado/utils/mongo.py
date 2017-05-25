@@ -8,13 +8,20 @@ _CLIENT_CACHE = {}
 
 def motor_from_uri(uri):
     parsed = urlparse(uri)
-    client_args = parsed.netloc, parsed.port
+    netloc = parsed.netloc
+    if netloc.find('@') > -1:
+        auth, netloc = parsed.netloc.split('@')
+
+    client_args = netloc, parsed.port
     client = _CLIENT_CACHE.get(
         client_args,
         motor.MotorClient(*client_args)
     )
     db_name, col_name = parsed.path.split('/')[1:]
     db = client[db_name]
+    if auth:
+        user, pwd = auth.split(':')
+        db.authenticate(user, pwd)
     col = db[col_name]
 
     return client, db_name, db, col_name, col
