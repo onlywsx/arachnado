@@ -183,7 +183,7 @@ function _getRowInfo(job, curTime){
     var stats = job.stats || {};
     var status = simplifiedStatus(job.status);
     var downloaded = stats['downloader/response_bytes'] || 0;
-    var shortId = job.id.slice(0, 5) + "…";
+    var shortId = job.id.slice(0, 10) + "…";
 
     var duration = 0;
     if (stats['start_time']) {

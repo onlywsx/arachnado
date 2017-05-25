@@ -23,9 +23,9 @@ export var CrawlForm = withRouter(React.createClass({
     getInitialState: function () {
         var spider = this.props.spider;
         if (spider) {
-            return {_id:spider._id, domain: spider.domain, startUrls: spider.args.startUrls, rules: spider.args.rules, parses: spider.args.parses};
+            return {_id:spider._id, domain: spider.domain, name: spider.args.name, startUrls: spider.args.startUrls, rules: spider.args.rules, parses: spider.args.parses};
         }
-        return {_id: '', domain: '', startUrls: [], rules: [], parses: []};
+        return {_id: '', domain: '', name: '', startUrls: [], rules: [], parses: []};
     },
 
     render: function () {
@@ -37,11 +37,17 @@ export var CrawlForm = withRouter(React.createClass({
                         <div className="col-xs-2"  style={noPadding}>
                             <button type="submit" className="btn btn-success" style={{width:"100%"}}>Save</button>
                         </div>
-                        <div className="col-xs-10" style={tinyPadding}>
+                        <div className="col-xs-3" style={tinyPadding}>
+                            <input type="text" className="form-control" name="name"
+                                   ref="nameInput" value={this.state.name}
+                                   onChange={this.onNameChange}
+                                   placeholder="NAME, e.g. scrapy"/>
+                        </div>
+                        <div className="col-xs-7" style={tinyPadding}>
                             <input type="text" className="form-control" name="domain"
                                    ref="domainInput" value={this.state.domain}
                                    onChange={this.onChange}
-                                   placeholder="website URL, e.g. scrapy.org"/>
+                                   placeholder="DOMAIN, e.g. scrapy.org"/>
                         </div>
                     </div>
                 </form>
@@ -58,10 +64,16 @@ export var CrawlForm = withRouter(React.createClass({
         this.setState({domain: domain});
     },
 
+    onNameChange: function (ev) {
+        var name = this.refs.nameInput.value;
+        this.setState({name: name});
+    },
+
     onSubmit: function (ev) {
         ev.preventDefault();
         var options = {};
         options['args'] = {
+            name: this.state.name,
             startUrls: this.state.startUrls,
             rules: this.state.rules,
             parses: this.state.parses

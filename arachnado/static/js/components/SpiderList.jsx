@@ -125,7 +125,7 @@ var SpiderRow = withRouter(React.createClass({
         var created_at = parseDate(spider.created_at);
 
         var data = [
-            spider.name,
+            spider.args.name,
             spider.domain,
             created_at,
         ];

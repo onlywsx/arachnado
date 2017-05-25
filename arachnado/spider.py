@@ -149,8 +149,9 @@ def _dont_increase_depth(response):
 class FishfirstSpider(ArachnadoSpider):
     name = 'fishfirst'
 
-    def __init__(self, startUrls=None, rules=None, parses=None, *args, **kwargs):
+    def __init__(self, name=None, startUrls=None, rules=None, parses=None, *args, **kwargs):
         ''''''
+        self.name = name
         self.start_urls = startUrls
         self.rules = self._parse_rules(rules)
 
@@ -185,10 +186,17 @@ class FishfirstSpider(ArachnadoSpider):
             elif field.startswith(ident):
                 field = field[len(ident):]
                 item[field] = self._match_item(response, match)
+        if item:
+            item['name'] = self.name
 
         return item
 
     def _match_item(self, response, match):
+        result = None
         if match.find('//') > -1 or match.find('()') > -1 or match.find('@') > -1:
-            return response.xpath(match).extract_first()
-        return response.css(match).extract_first()
+            result = response.xpath(match).extract_first()
+        else:
+            result = response.css(match).extract_first()
+        if result:
+            return result.strip("：，,;；:\n ".decode('utf-8'))
+        return None
