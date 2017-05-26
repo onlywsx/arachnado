@@ -43,7 +43,7 @@ class DomainCrawlers(object):
         def _get_spider():
             for spider in (yield spider_storage.fetch()):
                 spiders.append(spider)
-        _get_spider()
+        IOLoop.instance().add_callback(_get_spider)
         return spiders
 
     def start(self, domain, args, settings, crawl_id=None):
