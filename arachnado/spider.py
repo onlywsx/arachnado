@@ -198,5 +198,5 @@ class FishfirstSpider(ArachnadoSpider):
         else:
             result = response.css(match).extract_first()
         if result:
-            return result.strip("：，,;；:\n ".decode('utf-8'))
+            return result.strip("：，,;；:\r\n  ".decode('utf-8'))
         return None
