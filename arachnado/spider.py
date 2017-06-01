@@ -188,7 +188,8 @@ class FishfirstSpider(ArachnadoSpider):
                 item[field] = self._match_item(response, match)
         if item:
             item['name'] = self.name
-
+            if 'date' in item:
+                item['date'] = self._handle_date_field(item['date']);
         return item
 
     def _match_item(self, response, match):
@@ -200,3 +201,11 @@ class FishfirstSpider(ArachnadoSpider):
         if result:
             return result.strip("：，,;；:\r\n  ".decode('utf-8'))
         return None
+    
+    def _handle_date_field(self, dataStr):
+        if re.match('\d+-\d+-\d+', dataStr):
+            dataList = re.split('\s+', dataStr)
+            _year, _month, _day = dataList[0].split('-')
+            dataList[0] = '-'.join([_year, _month.zfill(2), _day.zfill(2)])
+            dataStr = ' '.join(dataList)
+        return dataStr
