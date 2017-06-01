@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 import contextlib
 import logging
+import re
 
 import scrapy
 from scrapy.spiders import CrawlSpider, Rule
@@ -189,7 +190,7 @@ class FishfirstSpider(ArachnadoSpider):
         if item:
             item['name'] = self.name
             if 'date' in item:
-                item['date'] = self._handle_date_field(item['date']);
+                item['date'] = self._handle_date_field(item['date'])
         return item
 
     def _match_item(self, response, match):
@@ -201,11 +202,11 @@ class FishfirstSpider(ArachnadoSpider):
         if result:
             return result.strip("：，,;；:\r\n  ".decode('utf-8'))
         return None
-    
+
     def _handle_date_field(self, dataStr):
-        if re.match('\d+-\d+-\d+', dataStr):
-            dataList = re.split('\s+', dataStr)
-            _year, _month, _day = dataList[0].split('-')
-            dataList[0] = '-'.join([_year, _month.zfill(2), _day.zfill(2)])
-            dataStr = ' '.join(dataList)
+        if re.match(r'\d+-\d+-\d+', dataStr):
+            data_list = re.split(r'\s+', dataStr)
+            _year, _month, _day = data_list[0].split('-')
+            data_list[0] = '-'.join([_year, _month.zfill(2), _day.zfill(2)])
+            dataStr = ' '.join(data_list)
         return dataStr
