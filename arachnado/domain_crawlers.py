@@ -56,7 +56,7 @@ class DomainCrawlers(object):
             return
 
         crawl_id = uuid.uuid4().hex if crawl_id is None else crawl_id
-        crawler = self._create_crawler(crawl_id, spider_cls, settings)
+        crawler = self._create_crawler(domain, spider_cls, settings)
         crawler.start_options = dict(
             domain=domain,
             args=args,
@@ -69,12 +69,12 @@ class DomainCrawlers(object):
                                    **args)
         return crawler
 
-    def _create_crawler(self, crawl_id, spider_cls, settings=None):
+    def _create_crawler(self, domain, spider_cls, settings=None):
         _settings = Settings(self.settings)
         _settings.setdict(settings, 'cmdline')
 
         root = _settings.get('DISK_QUEUES_ROOT')
-        jobdir = os.path.join(root, crawl_id)
+        jobdir = os.path.join(root, domain)
         _settings.set('JOBDIR', jobdir, priority='cmdline')
 
         spider_cls = ArachnadoSpider.inherit_from_me(spider_cls)
