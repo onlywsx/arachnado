@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import contextlib
 import logging
 import re
+import datetime
 
 import scrapy
 from scrapy.spiders import CrawlSpider, Rule
@@ -11,7 +12,10 @@ from scrapy.http.response.html import HtmlResponse
 from autologin_middleware import link_looks_like_logout
 
 from arachnado.utils.misc import add_scheme_if_missing, get_netloc
+import sys
 
+reload(sys)
+sys.setdefaultencoding( "utf-8" )
 
 class ArachnadoSpider(CrawlSpider):
     """
@@ -153,7 +157,7 @@ class FishfirstSpider(ArachnadoSpider):
     def __init__(self, name=None, startUrls=None, rules=None, parses=None, *args, **kwargs):
         ''''''
         self.name = name
-        self.start_urls = startUrls
+        self.start_urls = [url for url in startUrls if url]
         self.rules = self._parse_rules(rules)
 
         super(FishfirstSpider, self).__init__(*args, **kwargs)
@@ -203,10 +207,31 @@ class FishfirstSpider(ArachnadoSpider):
             return result.strip("：，,;；:\r\n  ".decode('utf-8'))
         return None
 
-    def _handle_date_field(self, dataStr):
-        if re.match(r'\d+-\d+-\d+', dataStr):
-            data_list = re.split(r'\s+', dataStr)
-            _year, _month, _day = data_list[0].split('-')
-            data_list[0] = '-'.join([_year, _month.zfill(2), _day.zfill(2)])
-            dataStr = ' '.join(data_list)
-        return dataStr
+    def _handle_date_field(self, date_time):
+        if not date_time:
+            return None
+        date_time = re.sub(r'^[^\d]+', '', date_time)
+        date_time = re.sub(ur'[^\d日]+$', '', date_time)
+
+        format_date = None
+        if date_time.find('-') > -1:
+            format_date = '%Y-%m-%d'
+        elif date_time.find('/') > -1:
+            format_date = '%Y/%m/%d'
+        else:
+            format_date = '%Y年%m月%d日'
+
+        format_time = None
+        colon_count = date_time.count(':')
+        if colon_count == 2:
+            format_time = '%H:%M:%S'
+        elif colon_count == 1:
+            format_time = '%H:%M'
+
+        _format_ = None
+        if format_time:
+            _format_ = format_date + ' ' + format_time
+        else:
+            _format_ = format_date
+
+        return datetime.datetime.strptime(date_time, _format_).strftime('%Y-%m-%d %H:%M:%S')
