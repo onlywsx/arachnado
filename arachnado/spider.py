@@ -4,6 +4,7 @@ import contextlib
 import logging
 import re
 import datetime
+import sys
 
 import scrapy
 from scrapy.spiders import CrawlSpider, Rule
@@ -12,10 +13,10 @@ from scrapy.http.response.html import HtmlResponse
 from autologin_middleware import link_looks_like_logout
 
 from arachnado.utils.misc import add_scheme_if_missing, get_netloc
-import sys
 
 reload(sys)
-sys.setdefaultencoding( "utf-8" )
+sys.setdefaultencoding("utf-8")
+
 
 class ArachnadoSpider(CrawlSpider):
     """

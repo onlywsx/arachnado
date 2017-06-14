@@ -11,7 +11,7 @@ export var KeyValueList = React.createClass({
         var rows = this.state.list.map((item, index) =>
             <KeyValueRow
                 index={index}
-                key={index}
+                key={item[0]+index}
                 key_={item[0]}
                 value_={item[1]}
                 keyPlaceholder={this.props.keyPlaceholder}
@@ -78,12 +78,16 @@ var KeyValueRow = React.createClass({
                         style={{width: '100%'}} value={this.state.value} onChange={this.onValueChange}/>
                 </div>
                 <div className="col-xs-1" style={smallPadding}>
-                    <button className="btn btn-warning btn-xs" onClick={this.props.onDelete}>
+                    <button className="btn btn-warning btn-xs" onClick={this.onDelete}>
                         <Glyphicon glyph="minus" />
                     </button>
                 </div>
             </div>
         )
+    },
+
+    onDelete: function(e) {
+        this.props.onDelete(this.props.index);
     },
 
     onKeyChange: function(e) {
