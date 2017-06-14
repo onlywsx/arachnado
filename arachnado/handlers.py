@@ -94,7 +94,7 @@ class Index(NoEtagsMixin, BaseRequestHandler):
 
     def get(self):
         jobs = self.crawler_process.jobs
-        spiders = self.domain_crawlers.get_spider(self.spider_storage)
+        spiders = self.domain_crawlers.spiders
 
         initial_data_json = json.dumps(json_encode({"jobs": jobs, "spiders": spiders}))
         return self.render("index.html", initial_data_json=initial_data_json)

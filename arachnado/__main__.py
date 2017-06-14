@@ -105,6 +105,7 @@ def main(port, host, start_manhole, manhole_port, manhole_host, loglevel, opts):
         settings=settings
     )
     domain_crawlers.resume(job_storage)
+    domain_crawlers.get_spider(spider_storage)
 
     cron = Cron(domain_crawlers, site_storage)
     cron.start()

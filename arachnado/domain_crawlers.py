@@ -24,6 +24,7 @@ class DomainCrawlers(object):
         self.crawler_process = crawler_process
         self.spider_packages = spider_packages
         self.default_spider_name = default_spider_name
+        self.spiders = []
 
     def resume(self, job_storage):
         @gen.coroutine
@@ -38,13 +39,11 @@ class DomainCrawlers(object):
         IOLoop.instance().add_callback(_resume)
 
     def get_spider(self, spider_storage):
-        spiders = []
         @gen.coroutine
         def _get_spider():
             for spider in (yield spider_storage.fetch()):
-                spiders.append(spider)
+                self.spiders.append(spider)
         IOLoop.instance().add_callback(_get_spider)
-        return spiders
 
     def start(self, domain, args, settings, crawl_id=None):
         """ Create, start and return a crawler for a given domain. """
