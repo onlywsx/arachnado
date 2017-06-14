@@ -11,7 +11,7 @@ export var KeyValueList = React.createClass({
         var rows = this.state.list.map((item, index) =>
             <KeyValueRow
                 index={index}
-                key={item[0]+index}
+                key={this.state.list.length+'-'+index}
                 key_={item[0]}
                 value_={item[1]}
                 keyPlaceholder={this.props.keyPlaceholder}

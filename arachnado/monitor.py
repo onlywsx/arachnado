@@ -64,7 +64,7 @@ class Monitor(BaseWSHandler):
         self.cp.signals.connect(self.on_stats_changed, agg_stats_changed)
         self.cp.signals.connect(self.on_spider_opened, CPS.spider_opened)
         self.cp.signals.connect(self.on_spider_closed, CPS.spider_closed)
-        self.spider_storage.subscribe('tailed', self.on_spider_storage_tailed)
+        self.spider_storage.subscribe(['created', 'updated', 'deleted'], self.on_spider_storage_tailed)
 
         for signal in self.engine_signals:
             self.cp.signals.connect(self.on_engine_state_changed, signal)
@@ -77,7 +77,7 @@ class Monitor(BaseWSHandler):
         self.cp.signals.disconnect(self.on_stats_changed, agg_stats_changed)
         self.cp.signals.disconnect(self.on_spider_opened, CPS.spider_opened)
         self.cp.signals.disconnect(self.on_spider_closed, CPS.spider_closed)
-        self.spider_storage.unsubscribe('tailed')
+        self.spider_storage.unsubscribe(['created', 'updated', 'deleted'])
         for signal in self.engine_signals:
             self.cp.signals.disconnect(self.on_engine_state_changed, signal)
         self.cp.procmon.signals.disconnect(self.on_process_stats, ProcessStatsMonitor.signal_updated)

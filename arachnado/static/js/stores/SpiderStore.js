@@ -34,10 +34,14 @@ export var store = Reflux.createStore({
         var spiderIndex = this.spiders.findIndex((spider_) => {
             return spider_._id == spider._id;
         });
-        if(spiderIndex == -1) {
+        if (spiderIndex == -1) {
             this.spiders.push(spider)
-            this.trigger(this.spiders);
+        } else if (spider.domain) {
+            this.spiders.splice(spiderIndex, 1, spider);
+        } else {
+            this.spiders.splice(spiderIndex, 1);
         }
+        this.trigger(this.spiders);
     },
 
     onStartCrawl: function (domain, options) {
@@ -49,14 +53,7 @@ export var store = Reflux.createStore({
     },
 
     onRemoveCrawl: function (spider) {
-        var spiderIndex = this.spiders.findIndex((spider_) => {
-            return spider_._id == spider._id;
-        });
-        if(spiderIndex !== -1) {
-            this.spiders.splice(spiderIndex, 1);
-            this.trigger(this.spiders);
-            API.removeCrawl(spider._id);
-        }
+        API.removeCrawl(spider._id);
     },
 });
 

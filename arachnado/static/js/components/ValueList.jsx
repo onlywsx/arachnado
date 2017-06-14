@@ -11,7 +11,7 @@ export var ValueList = React.createClass({
         var rows = this.state.list.map((item, index) =>
             <ValueRow
                 index={index}
-                key={index+item}
+                key={this.state.list.length+'-'+index}
                 value_={item}
                 valuePlaceholder={this.props.valuePlaceholder}
                 onDelete={this.onDelete}

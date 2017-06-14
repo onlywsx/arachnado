@@ -128,6 +128,7 @@ class SaveCrawler(ApiHandler, BaseRequestHandler):
             args = self.json_args.get('options', {}).get('args', {})
             settings = self.json_args.get('options', {}).get('settings', {})
             if self.save_spiders(spider_id, domain, args, settings):
+                self.domain_crawlers.get_spider(self.spider_storage)
                 self.write({"status": "ok"})
             else:
                 self.write({"status": "error"})
@@ -144,6 +145,7 @@ class RemoveCrawler(ApiHandler, BaseRequestHandler):
         if self.is_json:
             spider_id = self.json_args.get('_id', None)
             if self.remove_spiders(spider_id):
+                self.domain_crawlers.get_spider(self.spider_storage)
                 self.write({"status": "ok"})
             else:
                 self.write({"status": "error"})

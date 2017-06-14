@@ -72,10 +72,10 @@ export var SpiderPage = React.createClass({
     ],
 
     render: function () {
-        var spider = this.state.spider;
-        if (!spider && this.props.params.id != 'add'){
+        if (!this.state.spider && this.props.params.id != 'add'){
             return <NoSipderPage/>;
         }
+        var spider = this.state.spider ? JSON.parse(JSON.stringify(this.state.spider)) : null
         return (
             <div className="row">
                 <div className="row">

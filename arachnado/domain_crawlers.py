@@ -39,6 +39,7 @@ class DomainCrawlers(object):
         IOLoop.instance().add_callback(_resume)
 
     def get_spider(self, spider_storage):
+        self.spiders = []
         @gen.coroutine
         def _get_spider():
             for spider in (yield spider_storage.fetch()):
