@@ -17,6 +17,9 @@ export var Actions = Reflux.createActions([
 
 // Show failed sites last
 var siteCmp = function(site1, site2) {
+    if (site1.url == site2.url) {
+        return site1._id < site2._id ? -1 : 1;
+    }
     return site1.url < site2.url ? -1 : 1;
 }
 

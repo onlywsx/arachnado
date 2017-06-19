@@ -148,14 +148,15 @@ class SiteCheckerSpider(scrapy.Spider):
         }
 
     def run_check(self, site):
-        request = scrapy.Request(
-            url=site['url'],
-            callback=self.parse_site,
-            errback=self.parse_site_error,
-            dont_filter=True,
-            meta={'_id': str(site['_id'])}
-        )
-        self.crawler.engine.crawl(request, self)
+        if 'url' in site:
+            request = scrapy.Request(
+                url=site['url'],
+                callback=self.parse_site,
+                errback=self.parse_site_error,
+                dont_filter=True,
+                meta={'_id': str(site['_id'])}
+            )
+            self.crawler.engine.crawl(request, self)
 
     def rerun_check(self, site):
         check_interval = site.get('check_interval',

@@ -79,8 +79,8 @@ class MongoStorage(object):
         while (yield cursor.fetch_next):
             doc = cursor.next_object()
             docs.append(doc)
-            #if self.cache is not None:
-            #    self.cache[str(doc['_id'])] = doc
+            if self.cache is not None:
+               self.cache[str(doc['_id'])] = doc
             #    if str(doc['_id']) not in self.cache:
             #        self.signal_manager.send_catch_log(
             #            self.signals['created'], data=doc

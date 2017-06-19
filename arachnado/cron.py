@@ -1,3 +1,5 @@
+import pytz
+from tzlocal import get_localzone
 import time
 import logging
 import datetime
@@ -28,7 +30,7 @@ class Cron(object):
         self.running = False
         self.cancel_all()
 
-    def rerun(self):
+    def rerun(self, data=None):
         if not self.running:
             return
         deleted_ids = (
@@ -36,7 +38,10 @@ class Cron(object):
             set(self.site_storage.cache.keys())
         )
         for id_ in self.site_storage.cache:
-            self.schedule(id_)
+            if not data:
+                self.schedule(id_)
+            elif id_ == data['_id']:
+                self.schedule(id_)
         for id_ in deleted_ids:
             self.cancel(id_)
 
@@ -55,7 +60,12 @@ class Cron(object):
             return
 
         try:
-            cron = croniter(site['schedule'])
+            utc = pytz.utc
+            tz = get_localzone()
+            t = datetime.datetime.utcnow()
+            utc_dt = utc.localize(t)
+            loc_dt = utc_dt.astimezone(tz)
+            cron = croniter(site['schedule'], loc_dt)
         except Exception:
             if site.get('schedule_valid', True) is True:
                 self.site_storage.update(
@@ -93,7 +103,17 @@ class Cron(object):
         except KeyError:
             return
 
-        args = _key_value_to_dict(site.get('args', []))
+        # args = _key_value_to_dict(site.get('args', []))
+        sidename = site.get('sidename', '')
+        start_urls = site.get('startUrls', [])
+        rules = site.get('rules', [])
+        parses = site.get('parses', [])
+        args = {
+            'name': sidename,
+            'startUrls': start_urls,
+            'rules': rules,
+            'parses': parses
+        }
         settings = _key_value_to_dict(site.get('settings', []))
 
         # checking for == 'generic' to be backwards compatible

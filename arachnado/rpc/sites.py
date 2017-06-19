@@ -25,14 +25,21 @@ class Sites(object):
         self.storage.delete(site)
 
     def subscribe(self):
-        for event_name in self.storage.available_events:
-            self.storage.subscribe(
-                event_name,
-                partial(self._publish, event=event_name)
-            )
+        self.storage.subscribe('created', self.created_publish)
+        self.storage.subscribe('updated', self.updated_publish)
+        self.storage.subscribe('deleted', self.deleted_publish)
 
     def _on_close(self):
         self.storage.unsubscribe(self.storage.available_events)
 
+    def created_publish(self, data):
+        return self._publish('created', data)
+
+    def updated_publish(self, data):
+        return self._publish('updated', data)
+
+    def deleted_publish(self, data):
+        return self._publish('deleted', data)
+
     def _publish(self, event, data):
-        self.handler.write_event('sites.{}'.format(event), data)
+        self.handler.write_event({'event': 'sites.{}'.format(event), 'data': data})

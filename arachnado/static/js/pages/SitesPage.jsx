@@ -5,6 +5,7 @@ var moment = require('moment');
 var debounce = require("debounce");
 var { Table, Button, ButtonGroup, Glyphicon, Modal, FormControl, Well } = require("react-bootstrap");
 var { KeyValueList } = require("../components/KeyValueList");
+var { ValueList } = require("../components/ValueList");
 var { keyValueListToDict } = require('../utils/SitesAPI');
 var JobStore = require("../stores/JobStore");
 var SitesStore = require("../stores/SitesStore");
@@ -18,6 +19,7 @@ var SiteTable = React.createClass({
             <thead>
                 <tr>
                     <th></th>
+                    <th>Name</th>
                     <th>URL</th>
                     <th>Title</th>
                     <th>Status</th>
@@ -39,7 +41,7 @@ var SiteTable = React.createClass({
 var NoRows = React.createClass({
     render() {
         return (<tr>
-            <td colSpan="8">No sites to show. Feel free to add one using button above</td>
+            <td colSpan="10">No sites to show. Feel free to add one using button above</td>
         </tr>);
     }
 });
@@ -80,13 +82,16 @@ var SiteRow = React.createClass({
                         </ButtonGroup>
                     </td>
                     <td>
+                        <input type="text" style={scheduleStyle} bsSize="small" onChange={this.onSidenameChange} ref="sidename" value={this.state.site.sidename}/>
+                    </td>
+                    <td>
                         <small>
                             <a href={this.props.site.url} target="_blank">
                                 {this.shortenUrl(this.props.site.url)}
                             </a>
                         </small>
                     </td>
-                    <td>{this.props.site.title}</td>
+                    <td>{this.shortenTitle(this.props.site.title)}</td>
                     <td>{statusMessage}</td>
                     <td>{this.props.site.engine}</td>
                     <td>{this.formatTime(this.props.site.last_crawled)}</td>
@@ -113,11 +118,23 @@ var SiteRow = React.createClass({
                 </tr>
                 {this.state.optionsVisible ?
                 <tr>
-                    <td colSpan="4"></td>
-                    <td colSpan="6">
+                    <td colSpan="2"></td>
+                    <td colSpan="8">
                         <Well style={{marginTop:-4}}>
-                            <KeyValueList title="Scrapy settings" list={this.state.site.settings} onChange={this.onSettingsChange}/>
-                            <KeyValueList title="Spider args" list={this.state.site.args} onChange={this.onArgsChange}/>
+                            <ValueList title="Urls"
+                                        list={this.state.site.startUrls}
+                                        valuePlaceholder="Start_Url"
+                                        onChange={this.onStartUrlsChange}/>
+                            <KeyValueList title="Rules"
+                                        list={this.state.site.rules}
+                                        keyPlaceholder="Allow_Url_Rule"
+                                        valuePlaceholder="Parse"
+                                        onChange={this.onRulesChange}/>
+                            <KeyValueList title="Parse"
+                                        list={this.state.site.parses}
+                                        keyPlaceholder="Parse_Field"
+                                        valuePlaceholder="Match"
+                                        onChange={this.onParsesChange}/>
                         </Well>
                     </td>
                 </tr>
@@ -138,10 +155,13 @@ var SiteRow = React.createClass({
             last_crawled: new Date(),
         });
 
-        var options = {
-            settings: keyValueListToDict(this.props.site.settings),
-            args: keyValueListToDict(this.props.site.args)
-        };
+        var options = {};
+        options['args'] = {
+            name: this.state.site.sidename,
+            startUrls: this.state.site.startUrls,
+            rules: this.state.site.rules,
+            parses: this.state.site.parses
+        }
 
         // checking for == 'generic' to be backwards compatible
         if(!this.props.site.engine || this.props.site.engine == 'generic') {
@@ -170,23 +190,43 @@ var SiteRow = React.createClass({
         // }
         return url;
     },
+    shortenTitle(title, maxLength=15) {
+        if(title && title.length > maxLength) {
+            title = title.substring(0, maxLength);
+            title += '...';
+        }
+        return title;
+    },
     toggleOptions(e) {
         e.preventDefault();
         this.setState({optionsVisible: !this.state.optionsVisible});
     },
-    onArgsChange(args) {
-        this.state.site.args = args;
+    onStartUrlsChange(startUrls) {
+        this.state.site.startUrls = startUrls;
         this.setState(this.state);
         this.sendState();
     },
-    onSettingsChange(settings) {
-        this.state.site.settings = settings;
+
+    onRulesChange(rules) {
+        this.state.site.rules = rules;
+        this.setState(this.state);
+        this.sendState();
+    },
+
+    onParsesChange(parses) {
+        this.state.site.parses = parses;
         this.setState(this.state);
         this.sendState();
     },
     onNotesChange(e) {
         var value = this.refs.notes.value;
         this.state.site.notes = value;
+        this.setState(this.state);
+        this.sendState();
+    },
+    onSidenameChange(e) {
+        var value = this.refs.sidename.value;
+        this.state.site.sidename = value;
         this.setState(this.state);
         this.sendState();
     },

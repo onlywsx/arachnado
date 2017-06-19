@@ -14,9 +14,6 @@ export var IndexPage = React.createClass({
         return (
             <div className="row">
                 <div className="col-lg-7 col-md-7">
-                    <Panel collapsible defaultExpanded header="Spiders" bsStyle="primary">
-                        <SpiderList/>
-                    </Panel>
                     <Panel collapsible defaultExpanded header="Jobs" bsStyle="primary">
                         <JobList/>
                     </Panel>

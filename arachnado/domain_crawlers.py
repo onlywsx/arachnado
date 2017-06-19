@@ -48,6 +48,7 @@ class DomainCrawlers(object):
 
     def start(self, domain, args, settings, crawl_id=None):
         """ Create, start and return a crawler for a given domain. """
+        domain = domain.replace('https://', '').replace('http://', '')
         default_cls = find_spider_cls(
             self.default_spider_name,
             self.spider_packages + ['arachnado.spider'])

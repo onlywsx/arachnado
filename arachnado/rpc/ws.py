@@ -20,10 +20,16 @@ class RpcWebsocketHandler(ArachnadoRPC, websocket.WebSocketHandler):
     """
 
     def on_message(self, message):
-        self.handle_request(message)
+        try:
+            msg = json.loads(message)
+            event, data = msg['event'], msg['data']
+        except Exception as e:
+            logger.warn("Invalid message skipped" + message[:500])
+            return
+        self.handle_request(json.dumps(data))
 
     def send_data(self, data):
-        self.write_event(data)
+        self.write_event({'event': 'rpc:response', 'data': data})
 
     @gen.coroutine
     def write_event(self, data, max_message_size=0):
