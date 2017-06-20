@@ -222,12 +222,15 @@ class FishfirstSpider(ArachnadoSpider):
         else:
             format_date = '%Y年%m月%d日'
 
-        format_time = None
+        format_time = '%H:%M:%S'
+        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         colon_count = date_time.count(':')
         if colon_count == 2:
-            format_time = '%H:%M:%S'
+            pass
         elif colon_count == 1:
-            format_time = '%H:%M'
+            date_time += now[-3:]
+        else:
+            date_time += now[-8:]
 
         _format_ = None
         if format_time:
