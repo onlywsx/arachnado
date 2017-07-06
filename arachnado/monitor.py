@@ -10,6 +10,7 @@ from arachnado.crawler_process import (
 )
 from arachnado.process_stats import ProcessStatsMonitor
 from arachnado.wsbase import BaseWSHandler
+from arachnado.utils.misc import checkToken
 
 
 logger = logging.getLogger(__name__)
@@ -57,6 +58,7 @@ class Monitor(BaseWSHandler):
         """
         self.cp = crawler_process
         self.opts = opts
+        self.key = opts['arachnado']['key']
         self.spider_storage = spider_storage
 
     def on_open(self):
@@ -108,3 +110,11 @@ class Monitor(BaseWSHandler):
 
     def on_spider_storage_tailed(self, data=None):
         self.write_event("spiders:state", data)
+
+    def on_event(self, event, data):
+        if event == 'authority:check':
+            self.authority_check(data)
+
+    def authority_check(self, data):
+        if not checkToken(self.key, data):
+            self.write_event("authority:out", data=None)

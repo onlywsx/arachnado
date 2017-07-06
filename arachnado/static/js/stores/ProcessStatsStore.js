@@ -26,8 +26,19 @@ export var store = Reflux.createStore({
 
 
 var socket = FancyWebSocket.instance(window.WS_SERVER_ADDRESS);
+var inc = 10;
 socket.on("process:stats", (stats) => {
     Actions.update(stats);
+    inc++
+    if (inc >= 10) {
+        inc = 0;
+        socket.send("authority:check", {token: window.sessionStorage.token});
+    }
+});
+
+socket.on("authority:out", (stats) => {
+    window.sessionStorage.removeItem('token');
+    window.location.href = '/login';
 });
 
 if (window.INITIAL_PROCESS_STATS){

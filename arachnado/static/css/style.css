@@ -6,3 +6,9 @@
 .transfer-enter.transfer-enter-active {
   opacity: 1;
 }
+
+.login {
+  width: 260px;
+  margin: 0 auto;
+  margin-top: 10%;
+}

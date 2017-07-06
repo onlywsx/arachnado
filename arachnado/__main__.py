@@ -73,6 +73,7 @@ def main(port, host, start_manhole, manhole_port, manhole_host, loglevel, opts):
     jobs_uri = _getval(storage_opts, 'jobs_uri_env', 'jobs_uri')
     sites_uri = _getval(storage_opts, 'sites_uri_env', 'sites_uri')
     spiders_uri = _getval(storage_opts, 'spiders_uri_env', 'spiders_uri')
+    users_uri = _getval(storage_opts, 'users_uri_env', 'users_uri')
 
     scrapy_opts = opts['arachnado.scrapy']
     settings.update({k: v for k, v in scrapy_opts.items() if k.isupper()})
@@ -90,6 +91,7 @@ def main(port, host, start_manhole, manhole_port, manhole_host, loglevel, opts):
     item_storage.ensure_index("url")
     item_storage.ensure_index("_job_id")
     spider_storage = MongoTailStorage(spiders_uri)
+    user_storage = MongoTailStorage(users_uri)
 
     crawler_process = ArachnadoCrawlerProcess(settings)
 
@@ -111,7 +113,7 @@ def main(port, host, start_manhole, manhole_port, manhole_host, loglevel, opts):
     cron.start()
 
     app = get_application(crawler_process, domain_crawlers,
-                          site_storage, item_storage, job_storage, spider_storage, opts)
+                          site_storage, item_storage, job_storage, spider_storage, user_storage, opts)
     app.listen(int(port), host)
     logger.info("Arachnado v%s is started on %s:%s" % (__version__, host, port))
 

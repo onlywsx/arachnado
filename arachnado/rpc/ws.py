@@ -10,6 +10,7 @@ from tornado import websocket, gen
 
 from arachnado.utils.misc import json_encode
 from arachnado.rpc import ArachnadoRPC
+from arachnado.utils.misc import checkToken
 
 
 logger = logging.getLogger(__name__)
@@ -19,10 +20,20 @@ class RpcWebsocketHandler(ArachnadoRPC, websocket.WebSocketHandler):
     """ JsonRpc router for WS stream.
     """
 
+    def initialize(self, opts, *args, **kwargs):
+        self.opts = opts
+        self.key = opts['arachnado']['key']
+        super(RpcWebsocketHandler, self).initialize(*args, **kwargs)
+
     def on_message(self, message):
         try:
             msg = json.loads(message)
             event, data = msg['event'], msg['data']
+            if event == 'rpc:request' and not checkToken(self.key, data['params']):
+                self.write_event({'event': 'authority:out', 'data': None})
+                return
+            if 'token' in data['params']:
+                del data['params']['token']
         except Exception as e:
             logger.warn("Invalid message skipped" + message[:500])
             return

@@ -1,4 +1,7 @@
 from __future__ import absolute_import
+import json
+import time
+import base64
 from six.moves.urllib.parse import urlparse
 
 from scrapy.utils.serialize import ScrapyJSONEncoder
@@ -67,3 +70,37 @@ def get_netloc(url):
     'blog.example.org'
     """
     return urlparse(add_scheme_if_missing(url)).netloc
+
+def encode(key, dec):
+    dec = json.dumps(dec)
+    enc = []
+    for i in range(len(dec)):
+        key_c = key[i % len(key)]
+        enc_c = chr((ord(dec[i]) + ord(key_c)) % 256)
+        enc.append(enc_c)
+    return base64.urlsafe_b64encode("".join(enc))
+
+def decode(key, enc):
+    dec = []
+    enc = base64.urlsafe_b64decode(enc)
+    for i in range(len(enc)):
+        key_c = key[i % len(key)]
+        dec_c = chr((256 + ord(enc[i]) - ord(key_c)) % 256)
+        dec.append(dec_c)
+    return json.loads("".join(dec))
+
+
+def checkToken(key, data):
+    if 'token' in data and data['token']:
+        token = decode(key, str(data['token']))
+        expire = token['expire'] if 'expire' in token else None
+        if expire and time.time() < expire:
+            return True
+    return False
+
+def makeToken(key):
+    expire = time.time() + 24*60*60
+    enc = {
+        'expire': expire
+    }
+    return encode(key, enc)

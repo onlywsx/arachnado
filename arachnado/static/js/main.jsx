@@ -37,5 +37,6 @@ ReactDOM.render((
             <Route path="sites" component={SitesPage} />
             <Route path="*" component={NotFound} />
         </Route>
+        <Route path="/login" component={App} />
     </Router>
 ), document.getElementById("arachnado-root"));
