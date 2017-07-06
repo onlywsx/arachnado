@@ -99,7 +99,7 @@ def checkToken(key, data):
     return False
 
 def makeToken(key):
-    expire = time.time() + 24*60*60
+    expire = time.time() + 30*24*60*60
     enc = {
         'expire': expire
     }
