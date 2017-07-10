@@ -5,7 +5,7 @@ export function jsonAjax(url, data, type) {
     if (!data) {
         data = {}
     }
-    data['token'] = window.sessionStorage.token
+    data['token'] = window.localStorage.token
     return $.ajax(url, {
         type: type,
         contentType: 'application/json',

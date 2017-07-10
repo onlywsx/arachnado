@@ -15,7 +15,7 @@ socket.on("rpc:response", (response) => {
 });
 
 socket.on("authority:out", (stats) => {
-    window.sessionStorage.removeItem('token');
+    window.localStorage.removeItem('token');
     window.location.href = '/login';
 });
 
@@ -25,7 +25,7 @@ export var call = function(method, params) {
     if (!params) {
         params = {}
     }
-    params['token'] = window.sessionStorage.token
+    params['token'] = window.localStorage.token
     socket.send("rpc:request", {id: id, jsonrpc: "2.0", method: method, params: params});
     id++;
     return dfd.promise();

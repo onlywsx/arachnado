@@ -32,12 +32,12 @@ socket.on("process:stats", (stats) => {
     inc++
     if (inc >= 10) {
         inc = 0;
-        socket.send("authority:check", {token: window.sessionStorage.token});
+        socket.send("authority:check", {token: window.localStorage.token});
     }
 });
 
 socket.on("authority:out", (stats) => {
-    window.sessionStorage.removeItem('token');
+    window.localStorage.removeItem('token');
     window.location.href = '/login';
 });
 

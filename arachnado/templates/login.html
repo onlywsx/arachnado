@@ -54,7 +54,7 @@
                 dataType: "json", 
                 success: function(res) {
                     if (res.status == 'ok') {
-                        window.sessionStorage.token = res.token;
+                        window.localStorage.token = res.token;
                         window.location.href = '/';
                     } else {
                         alert("登录失败");
